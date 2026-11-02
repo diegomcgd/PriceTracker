@@ -10,7 +10,7 @@ headers = {
 }
 
 
-def getPrice(url: str) -> str:
+def getPrice(url: str) -> float:
 
     content = requests.get(url, headers=headers)
 
@@ -20,13 +20,21 @@ def getPrice(url: str) -> str:
         container = soup.find("div", class_="price fx-text fx-text--no-margin")
 
         if container:
-            price = container.text.strip()
+            priceString = container.text.strip()
+
+            price = float(
+                priceString.replace("$", "")
+                .replace("€", "")
+                .replace(".", "")
+                .replace(",", ".")
+            )
+
             return price
 
         else:
             print("Price wasn't found")
-            return ""
+            return -1
 
     else:
         print("There was an error with the get method")
-        return ""
+        return -1

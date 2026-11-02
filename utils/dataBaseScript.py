@@ -6,6 +6,9 @@ cur = conexion.cursor()
 # Activate foreign keys
 cur.execute("PRAGMA foreign_keys = ON;")
 
+cur.execute("DROP TABLE IF EXISTS price;")
+cur.execute("DROP TABLE IF EXISTS product;")
+
 cur.execute("""
     CREATE TABLE IF NOT EXISTS product (
         name TEXT PRIMARY KEY,
