@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
+from datetime import datetime
 
 headers = {
     "User-Agent": (
@@ -9,8 +10,10 @@ headers = {
     "Accept-Language": "es-ES,es;q=0.9",
 }
 
+API_BASE_URL = "0.0.0.0:8000"
 
-def getPrice(url: str) -> float:
+
+def get_price(url: str) -> float:
 
     content = requests.get(url, headers=headers)
 
@@ -38,3 +41,23 @@ def getPrice(url: str) -> float:
     else:
         print("There was an error with the get method")
         return -1
+
+
+# get all urls
+def get_all_urls() -> dict | None:
+    urls = requests.get(API_BASE_URL + "/products")
+
+    if urls.status_code != 200:
+        return None
+
+    return urls.json()
+
+
+def get_prices(all_urls: dict):
+    for url, prices in all_urls.items():
+        price = get_price(url)
+        prices[datetime.now()] = price
+
+
+# for each url, get today's price
+# post url's price for today
