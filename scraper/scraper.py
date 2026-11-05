@@ -1,6 +1,5 @@
 import requests
 from bs4 import BeautifulSoup
-from datetime import datetime
 
 headers = {
     "User-Agent": (
@@ -10,7 +9,7 @@ headers = {
     "Accept-Language": "es-ES,es;q=0.9",
 }
 
-API_BASE_URL = "0.0.0.0:8000"
+API_BASE_URL = "http://0.0.0.0:8000"
 
 
 def get_price(url: str) -> float:
@@ -44,20 +43,46 @@ def get_price(url: str) -> float:
 
 
 # get all urls
-def get_all_urls() -> dict | None:
-    urls = requests.get(API_BASE_URL + "/products")
 
-    if urls.status_code != 200:
+
+def get_all_products() -> dict | None:
+    """Sends a request to the API to get the products"""
+
+    products = requests.get(API_BASE_URL + "/products")
+
+    if products.status_code != 200:
         return None
 
-    return urls.json()
-
-
-def get_prices(all_urls: dict):
-    for url, prices in all_urls.items():
-        price = get_price(url)
-        prices[datetime.now()] = price
+    return products.json()
 
 
 # for each url, get today's price
 # post url's price for today
+
+
+def get_products_price(products: dict) -> bool:
+    """Get today's price for each url and put it in the database"""
+
+    for url in products:
+        price = get_price(url)
+
+        if price == -1:
+            continue
+
+        url_price = (str(url), price)
+
+        request = requests.put(
+            API_BASE_URL + "/products/history", params={"url": url_price}
+        )
+
+        if request.status_code != 200:
+            return False
+
+    return True
+
+
+products = get_all_products()
+print(products)
+
+if products != None:
+    get_products_price(products)
