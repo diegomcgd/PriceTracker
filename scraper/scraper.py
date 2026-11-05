@@ -13,6 +13,7 @@ API_BASE_URL = "http://0.0.0.0:8000"
 
 
 def get_price(url: str) -> float:
+    """Get the price of a product given its url"""
 
     content = requests.get(url, headers=headers)
 
@@ -60,29 +61,36 @@ def get_all_products() -> dict | None:
 # post url's price for today
 
 
-def get_products_price(products: dict) -> bool:
-    """Get today's price for each url and put it in the database"""
+def put_new_prices(products: dict) -> bool:
+    """Put the new price of every product in the database"""
 
-    for url in products:
+    for url, uuid in products.items():
         price = get_price(url)
 
         if price == -1:
             continue
 
-        url_price = (str(url), price)
-
         request = requests.put(
-            API_BASE_URL + "/products/history", params={"url": url_price}
+            # There are three ways to send parameters to the API:
+            #   - In the path, just adding it to the url
+            #   - As querys (?price=3000). In requests, we have to add into params a dictionary with the pair {"name_of_the_param": value_of_the_param}
+            #   - In the body of the request
+            # In this case, I'm sending the price as a query, creating a dictionary with the name of the variable and its value
+            API_BASE_URL + "/products/" + uuid + "/prices",
+            params={"price": price},
         )
 
         if request.status_code != 200:
+            print("Price wasn't put in the database. Url: " + url)
             return False
 
     return True
 
 
-products = get_all_products()
-print(products)
+def main():
+    products = get_all_products()
+    if products != None:
+        put_new_prices(products)
 
-if products != None:
-    get_products_price(products)
+
+main()
